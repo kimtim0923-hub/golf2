@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>골프 레프리 - 스크립트 진행표</title>
+  <style>
+    :root{--bg:#0b1220;--card:#121b2e;--muted:#8ea0c3;--text:#e9eefc;--accent:#6aa6ff;--ok:#42d392;--bad:#ff6a6a;--warn:#ffd166;}
+    body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:1200px;margin:0 auto;padding:28px;}
+    .top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    h1{font-size:20px;margin:0;}
+    a{color:#b9d4ff;}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px;}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;}
+    textarea{width:100%;min-height:140px;background:#0a1020;border:1px solid rgba(255,255,255,.10);border-radius:12px;color:var(--text);padding:10px;box-sizing:border-box;}
+    button{appearance:none;border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.08);color:var(--text);}
+    button.primary{background:var(--accent);color:#071023;}
+    button.ok{background:var(--ok);color:#062015;}
+    button.warn{background:rgba(255,209,102,.18);border:1px solid rgba(255,209,102,.25);}
+    .meta{font-size:12px;color:var(--muted);line-height:1.4}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.10);}
+    thead th{background:#0a1020;color:#cfe0ff;font-size:12px;text-align:left;padding:10px;border-bottom:1px solid rgba(255,255,255,.10);}
+    tbody td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;font-size:13px;}
+    tbody tr:hover{background:rgba(255,255,255,.03);}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(106,166,255,.15);border:1px solid rgba(106,166,255,.35);color:#cfe0ff;font-size:12px;}
+    .status{display:inline-flex;gap:6px;flex-wrap:wrap}
+    .chk{display:inline-flex;align-items:center;gap:6px;margin-right:10px;font-size:12px;color:#dbe5ff}
+    input[type="checkbox"]{width:16px;height:16px;}
+    .small{font-size:12px}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>스크립트 진행표 (복붙 → 자동 리스트 생성)</h1>
+        <div class="meta">흐름: 1페이지에서 원고 수정 → 여기(2페이지)에 붙여넣기 → 진행상태 체크 → 편집자에게 공유</div>
+      </div>
+      <div class="row">
+        <a class="meta" href="/">← 1페이지(소재/대본 생성기)</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div style="flex:1;min-width:280px">
+          <div class="meta"><b>대본 붙여넣기</b> (여러 개면 빈 줄 2개로 구분)</div>
+          <textarea id="bulkScripts" placeholder="여기에 1페이지에서 만든 1분 원고를 복붙하세요.\n\n여러 개를 붙일 때는 원고 사이를 빈 줄 2개로 구분하면 자동으로 여러 행이 생성됩니다."></textarea>
+          <div class="row" style="margin-top:10px">
+            <button id="btnParse" class="primary">리스트 생성</button>
+            <button id="btnClear" class="warn">초기화</button>
+            <span class="meta">저장: 브라우저 로컬(자동)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="meta"><b>진행표</b> (체크하면 자동 저장)</div>
+          <div class="meta small">컬럼: 제목 / 대본 / 영상 제작 / 검수 / 업로드 / 편집자</div>
+        </div>
+        <div class="row">
+          <button id="btnExport" class="ok">CSV 내보내기</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:260px">제목(썸네일용)</th>
+              <th>대본</th>
+              <th style="width:120px">영상 제작</th>
+              <th style="width:90px">검수</th>
+              <th style="width:90px">업로드</th>
+              <th style="width:160px">편집자</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td class="muted" colspan="6">아직 항목이 없습니다. 위에 원고를 붙여넣고 [리스트 생성]을 눌러주세요.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+<script type="module" src="/src/scriptsPage.js"></script>
+</body>
+</html>
