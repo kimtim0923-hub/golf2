@@ -199,6 +199,31 @@ function escapeHtml(str) {
 }
 
 function buildSlideScript({ topic, userNotes }) {
+  const targetChars = 1200; // 1분 내레이션 목표(대략 1,200자)
+  const hardLimitChars = 1500; // 과도하게 길어지지 않도록 상한
+
+  const padToLength = (text) => {
+    let t = String(text || '').trim();
+    if (t.length >= targetChars) return t.slice(0, hardLimitChars);
+
+    const fillers = [
+      '지금 상황을 “관행”으로 처리하면 나중에 스코어 정산에서 문제가 됩니다.',
+      '그래서 저는 항상 룰 번호를 먼저 확인하고, 그 다음에 절차대로 진행하라고 안내합니다.',
+      '이 영상은 본룰(Rules of Golf) 기준으로만 설명하고, 마지막에 공식 출처 링크를 남깁니다.',
+      '필드에서 헷갈리면 이 영상 저장해두고, 같은 상황에서 그대로 따라 하시면 됩니다.',
+    ];
+
+    let i = 0;
+    while (t.length < targetChars && i < 20) {
+      t += (t.endsWith('.') || t.endsWith('요.') ? ' ' : ' ') + fillers[i % fillers.length];
+      i++;
+    }
+    return t.slice(0, hardLimitChars);
+  };
+
+  const narrationLines = [];
+  const addNarr = (line) => narrationLines.push(String(line || '').trim());
+
   // 2분 = 120초, 10초마다 1장 => 12장
   // 원칙: 추론 금지 → 단정 대신 “룰 기준”으로 말하고, 룰 번호/출처 고정.
 
@@ -393,7 +418,10 @@ function buildSlideScript({ topic, userNotes }) {
     sources: sourceLines
   });
 
-  return { ...base, slides };
+  // 전체 내레이션을 1분 분량(약 1,200자)으로 맞춰 제공
+  const fullNarrationDraft = padToLength(narrationLines.filter(Boolean).join(' '));
+
+  return { ...base, slides, fullNarrationDraft, fullNarrationCharCount: fullNarrationDraft.length };
 }
 
 function loadHistory() {
@@ -446,6 +474,16 @@ const userNotesEl = document.getElementById('userNotes');
 const manualIdeaEl = document.getElementById('manualIdea');
 const btnUseIdea = document.getElementById('btnUseIdea');
 
+// 일부 페이지(debug 등)는 모든 UI 엘리먼트를 갖고 있지 않을 수 있어 null-safe 처리
+if (!btnTopic || !btnApprove || !topicBox || !output) {
+  console.warn('[golf-ref] Missing required DOM nodes; app.js initialized in safe mode.');
+}
+
+const safeOn = (el, event, handler) => {
+  if (!el) return;
+  el.addEventListener(event, handler);
+};
+
 function buildManualTopic(ideaText) {
   const clean = (ideaText || '').trim();
   return {
@@ -464,7 +502,7 @@ function buildManualTopic(ideaText) {
   };
 }
 
-btnTopic.addEventListener('click', () => {
+safeOn(btnTopic, 'click', () => {
   currentTopic = pickRandom(TOPICS);
   currentScript = null;
   btnApprove.disabled = false;
@@ -474,7 +512,7 @@ btnTopic.addEventListener('click', () => {
   topicBox.innerHTML = renderTopic(currentTopic);
 });
 
-btnUseIdea?.addEventListener('click', () => {
+safeOn(btnUseIdea, 'click', () => {
   const idea = manualIdeaEl?.value || '';
   if (!idea.trim()) {
     alert('아이디어를 먼저 입력해주세요.');
@@ -489,7 +527,7 @@ btnUseIdea?.addEventListener('click', () => {
   topicBox.innerHTML = renderTopic(currentTopic);
 });
 
-btnApprove.addEventListener('click', () => {
+safeOn(btnApprove, 'click', () => {
   if (!currentTopic) return;
   const userNotes = userNotesEl.value;
 
@@ -512,7 +550,7 @@ btnApprove.addEventListener('click', () => {
   renderHistory();
 });
 
-btnCopy.addEventListener('click', async () => {
+safeOn(btnCopy, 'click', async () => {
   if (!currentScript) return;
   const text = output.textContent;
   await navigator.clipboard.writeText(text);
@@ -520,7 +558,7 @@ btnCopy.addEventListener('click', async () => {
   setTimeout(() => (btnCopy.textContent = '대본 복사'), 900);
 });
 
-btnExport.addEventListener('click', () => {
+safeOn(btnExport, 'click', () => {
   if (!currentScript) return;
   const blob = new Blob([output.textContent], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
