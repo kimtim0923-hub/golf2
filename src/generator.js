@@ -22,16 +22,34 @@ function pickNByText(textAll, fallback = 5) {
 
 function padToLength(text, { minChars, maxChars }) {
   let t = String(text || '').trim();
+
+  // 길이 패딩은 “같은 문장 반복”이 발생하면 체감상 CTA 무한반복처럼 보일 수 있음.
+  // 따라서: (1) filler 문장을 다양화 (2) 동일 filler는 1회만 사용 (3) 원문에 이미 포함된 문장은 스킵
   const fillers = [
-    '저장해두면 라운드에서 그대로 따라할 수 있어요.',
-    '이거 한 번만 제대로 알면, 억울한 타수 손해가 확 줄어듭니다.',
-    '댓글로 다음 상황 남겨주시면 다음 편에서 바로 다뤄드릴게요.',
+    '지금 이 상황은 라운드에서 생각보다 자주 나옵니다.',
+    '핵심은 “기준점 → 구제구역 → 드롭” 순서예요.',
+    '판단이 애매하면, 코스 표기와 공식 규정 문구부터 확인하세요.',
+    '이거 한 번 정리해두면, 다음부터는 같은 자리에서 안 흔들립니다.',
+    '동반자랑 다툼 나는 포인트는 대부분 “경계”에서 시작돼요.',
+    '딱 한 가지. 내 느낌 말고, 규정에 있는 절차로 가면 됩니다.',
   ];
-  let i = 0;
-  while (t.length < minChars && i < 120) {
-    t += (t.endsWith('.') || t.endsWith('요.') ? ' ' : ' ') + fillers[i % fillers.length];
-    i++;
+
+  const used = new Set();
+  let guard = 0;
+  while (t.length < minChars && guard < 200) {
+    const candidate = fillers[guard % fillers.length];
+    guard++;
+
+    if (used.has(candidate)) continue;
+    if (t.includes(candidate)) continue;
+
+    used.add(candidate);
+    t += ' ' + candidate;
+
+    // 모든 filler를 1회씩 다 썼는데도 부족하면, 더 늘리지 말고 그대로 둔다.
+    if (used.size === fillers.length) break;
   }
+
   if (t.length > maxChars) t = t.slice(0, maxChars);
   return t;
 }
@@ -73,18 +91,42 @@ export function makeNarration({ topic, userNotes }) {
   const type = detectType(textAll);
   const cta = '레슨 받고 싶으세요?\nKPGA 레프리가 검증한 티칭프로, 설명란 링크에서 확인하세요.';
 
-  const is2026Summary = /2026.*(총\s*정리|전체\s*정리|리스트)|개정/i.test(textAll);
+  // 2026/MLR 모드는 “명시적으로” 언급될 때만 동작하게 좁힘
+  // (기존 /개정/ 은 너무 광범위해서 일반 룰 질문에도 잘못 반응할 수 있었음)
+  const is2026Summary = /(2026\s*년?|2026\b).*(총\s*정리|전체\s*정리|리스트|모음|6\s*가지|\d+\s*가지)|\bMLR\b|모델\s*로컬\s*룰|로컬\s*룰\s*6\s*가지/i.test(textAll);
   const pgaVariant = /PGA|프리퍼드\s*라이|preferred\s*lies/i.test(textAll);
 
   const paragraphGap = '\n\n';
 
   const typeA = () => {
     const hook = `라운드에서 ${topic.hook}… 그 순간, 진짜 창피하고 억울하죠?`;
-    const misconception = '보통은 이렇게 생각하시잖아요. 관행대로 하면 된다, 그냥 치면 된다.';
-    const tension = '그런데 여기서 문제는, 나중에 확인되면 벌타가 붙는 상황이 생긴다는 겁니다. 벌타일까요? 아닐까요?';
-    const decision = `결론부터 말하면, 이건 규정상 정해진 절차대로 처리해야 합니다.${is2026Summary ? ' 2026년 변경이 있는 주제라면 그 기준을 우선 적용합니다.' : ''}`;
-    const standard = '핵심은 눈으로 재는 기준이에요. 무릎 높이, 클럽 길이처럼 측정 기준을 잡고 그 안에서 처리하면 분쟁이 사라집니다.';
-    const summary = '한 줄 정리. 관행 말고, 기준점과 절차로 끝낸다.';
+
+    // 룰별(주제별) 전용 템플릿을 우선 적용
+    const byId = {
+      t_rule16_gur: {
+        misconception: '보통은 이렇게 생각하죠. “잔디가 좀 파였네? 수리지겠지.” 혹은 “내 스탠스만 걸리면 무조건 무료 구제겠지.”',
+        tension: '근데 여기서 제일 많이 싸우는 게 딱 두 가지예요. 첫째, 어디까지가 수리지냐. 둘째, 무료 구제 받으려다 오히려 벌타 상황이 되냐.',
+        decision: '결론부터 말하면, 수리지 무료 구제는 “코스가 표시/선언한 수리지” + “내 공이 그 안에 있거나, 내 스탠스/스윙이 그 수리지 때문에 방해받는 경우”에만 절차대로 받을 수 있어요.',
+        standard: `실전 가이드는 이렇게요.
+
+첫째, 경계부터 확인해요. 라인/말뚝/표시가 있으면 그게 수리지의 범위고, 애매하면 위원회(코스 안내)에 따르는 게 원칙입니다.
+
+둘째, 기준점은 “가장 가까운 완전 구제 지점”이에요. 공이 놓일 곳이 아니라, 방해가 완전히 사라지는 가장 가까운 지점을 먼저 찍습니다.
+
+셋째, 그 기준점에서 정해진 거리 안에 구제구역을 만들고, 그 안에 드롭해요. 드롭 후에도 구역 밖으로 나가면 재드롭/다음 절차로 넘어가야 합니다.
+
+넷째, ‘더 좋은 곳’ 찾으려고 옆으로 크게 가면 무료 구제가 아니라 그냥 위치 개선이 될 수 있어요.`,
+        summary: '한 줄 정리. 수리지는 “표시된 범위”가 기준이고, 구제는 “가장 가까운 완전 구제 지점 → 구제구역 → 드롭” 순서로 끝냅니다.',
+      },
+    };
+
+    const spec = byId[topic.id] || {};
+
+    const misconception = spec.misconception || '보통은 이렇게 생각하시잖아요. 관행대로 하면 된다, 그냥 치면 된다.';
+    const tension = spec.tension || '그런데 여기서 문제는, 나중에 확인되면 벌타가 붙는 상황이 생긴다는 겁니다. 벌타일까요? 아닐까요?';
+    const decision = spec.decision || `결론부터 말하면, 이건 규정상 정해진 절차대로 처리해야 합니다.${is2026Summary ? ' 2026년 변경이 있는 주제라면 그 기준을 우선 적용합니다.' : ''}`;
+    const standard = spec.standard || '핵심은 눈으로 재는 기준이에요. 무릎 높이, 클럽 길이처럼 측정 기준을 잡고 그 안에서 처리하면 분쟁이 사라집니다.';
+    const summary = spec.summary || '한 줄 정리. 관행 말고, 기준점과 절차로 끝낸다.';
 
     return [hook, misconception, tension, decision, standard, summary, cta].join(paragraphGap);
   };
