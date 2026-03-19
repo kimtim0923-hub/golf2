@@ -6,102 +6,157 @@
  */
 
 const TOPICS = [
+  // =========================
+  // 정보형(본룰 중심)
+  // =========================
   {
     id: 't_rule18_provisional',
     type: 'info',
-    category: 'Rule 18 (Stroke and Distance / Lost Ball / Provisional)',
+    category: 'Rule 18 (Stroke and Distance / Lost Ball / Provisional Ball)',
     title: '잠정구(프로비저널) 언제 치고, 뭐라고 선언해야 하나요?',
     hook: '“프로비저널” 선언 안 하면, 그 공은 그냥… 새 공입니다.',
-    target: '백돌이(라운드 10회+), 티샷 분실/OB 자주',
+    target: '라운드 10회+ 백돌이, 티샷 분실/OB 잦음',
     rules: [
       { ref: 'Rule 18.3', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-18' },
     ],
-    notes: '로컬룰(OB 로컬규정) 언급은 마지막 한 줄로만. 본룰 절차 중심.'
+    notes: '본룰 절차(선언/타이밍/원구 발견 시 처리)만. 로컬룰 언급은 지양.'
+  },
+  {
+    id: 't_rule18_lost_3min',
+    type: 'info',
+    category: 'Rule 18 (Lost Ball; Time to Search)',
+    title: '공 찾기 3분: 언제부터 언제까지 “3분”인가요?',
+    hook: '3분은 “대충”이 아니라, 시작 시점이 정해져 있습니다.',
+    target: '볼 찾다가 진행 느려지고 멘탈 깨지는 백돌이',
+    rules: [
+      { ref: 'Rule 18.2a', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-18' },
+    ],
+    notes: '본룰(3분) 기준만. 진행 매너/레디골프는 “권장”으로 분리 표기.'
   },
   {
     id: 't_rule17_redyellow',
     type: 'info',
     category: 'Rule 17 (Penalty Areas)',
-    title: '레드 vs 옐로 페널티구역: 드롭 옵션이 왜 달라요?',
-    hook: '같은 물인데… “색” 때문에 선택지가 달라집니다.',
-    target: '해저드(페널티구역)에서 매번 벌타+멘붕',
+    title: '레드 vs 옐로 페널티구역: 구제 옵션이 왜 다르죠?',
+    hook: '같은 페널티구역이어도, 표시 색에 따라 옵션이 달라질 수 있습니다.',
+    target: '페널티구역에서 매번 벌타+멘붕',
     rules: [
       { ref: 'Rule 17', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-17' },
     ],
-    notes: '정확한 옵션(측면/후방) 구분을 룰 문구에 맞춰 설명.'
+    notes: '옵션(스트로크+거리 / 후방선 / 측면구제 등)은 룰 문구에 맞춰 “선택지”로 정리.'
   },
   {
     id: 't_rule16_cartpath',
     type: 'info',
     category: 'Rule 16 (Relief from Abnormal Course Conditions)',
-    title: '카트도로/스프링클러(움직일 수 없는 장해물) 무료 구제 2분컷',
-    hook: '공이 “인공물”에 있으면, 벌타 없이 빼낼 수 있습니다(조건 충족 시).',
-    target: '카트도로/스프링클러 때문에 억울했던 사람',
+    title: '카트도로/스프링클러(움직일 수 없는 장해물) 무료 구제: “완전 구제”가 핵심',
+    hook: '공이 인공물 위/안/접촉이면, 조건 충족 시 “벌타 없이” 구제받습니다.',
+    target: '카트도로/스프링클러 때문에 억울했던 백돌이',
     rules: [
       { ref: 'Rule 16.1', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-16' },
     ],
-    notes: '“가장 가까운 완전 구제 지점” 개념을 그림으로.'
+    notes: '“가장 가까운 완전 구제 지점(NPCR)”을 도식으로. 판단을 추론하지 말고 정의/절차 중심.'
+  },
+  {
+    id: 't_rule16_gur',
+    type: 'info',
+    category: 'Rule 16 (Abnormal Course Conditions: Ground Under Repair)',
+    title: '수리지(GUR) 무료 구제: 어디까지가 수리지인가요?',
+    hook: '표시/선언된 수리지라면, 룰 16 절차로 무료 구제가 가능합니다(조건 충족 시).',
+    target: '수리지 경계에서 매번 다툼 나는 팀',
+    rules: [
+      { ref: 'Rule 16.1', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-16' },
+    ],
+    notes: '“수리지의 범위는 코스 표시에 따름”을 전제로, 무료구제 절차만 요약.'
   },
   {
     id: 't_rule19_unplayable',
     type: 'info',
     category: 'Rule 19 (Unplayable Ball)',
-    title: '언플레이어블(칠 수 없음) 3가지 옵션, 헷갈리지 않는 방법',
-    hook: '덤불에 들어갔다면, “벌타 1”로 선택지는 3개.',
+    title: '언플레이어블(칠 수 없음) 3가지 옵션: 1벌타로 선택하는 법',
+    hook: '덤불에 들어갔다면, 1벌타로 선택지는 3개입니다.',
     target: '러프/나무/덤불에서 스코어 무너지는 백돌이',
     rules: [
       { ref: 'Rule 19', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-19' },
     ],
-    notes: '각 옵션의 기준점(원위치/후방선/2클럽)을 도식화.'
+    notes: '각 옵션의 기준점(원위치/후방선/2클럽)을 도식화. “뭐가 유리” 같은 추론 금지.'
   },
   {
     id: 't_rule14_drop',
     type: 'info',
     category: 'Rule 14 (Procedures for Taking Relief)',
-    title: '드롭은 왜 “무릎 높이”인가요? + 재드롭 조건',
-    hook: '어깨 높이 드롭은 옛날 얘기. 지금은 무릎입니다.',
-    target: '드롭이 매번 불안한 사람',
+    title: '드롭 절차 2분컷: 무릎 높이 + 구제구역 + 재드롭',
+    hook: '어깨 높이 드롭은 옛날 이야기. 지금 기준은 무릎입니다.',
+    target: '드롭이 매번 불안한 백돌이',
     rules: [
       { ref: 'Rule 14.3', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-14' },
     ],
-    notes: '“구제구역 안에 정지”와 재드롭 트리거를 분리.'
+    notes: '재드롭 “조건 목록”은 룰 14.3을 그대로 확인하도록 안내(과도한 요약/추론 금지).' 
   },
   {
     id: 't_rule13_green_mark',
     type: 'info',
-    category: 'Rule 13 (Putting Greens)',
-    title: '그린에서 볼 마크/리프트/클린: 어디까지 합법?',
-    hook: '그린에서는 “정해진 절차”만 지키면 안전합니다.',
-    target: '그린 위 실수로 벌타/다툼 경험',
+    category: 'Rule 13 (Putting Greens) / Rule 14 (Marking, Lifting and Cleaning)',
+    title: '그린에서 마크하고 집어드는 절차: “표시 → 리프트 → 리플레이스”',
+    hook: '그린에서는 “정해진 절차”만 지키면 대부분의 실수를 피할 수 있습니다.',
+    target: '그린 위 실수로 다툼 경험 있는 백돌이',
     rules: [
-      { ref: 'Rule 13.1b', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-13' },
+      { ref: 'Rule 13', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-13' },
       { ref: 'Rule 14.1', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-14' },
     ],
-    notes: '마크 없이 집어드는 위험을 “퀴즈”로 구성 가능.'
+    notes: '“마크 없이 리프트” 같은 위험 포인트를 퀴즈로. 단, 벌타 단정은 룰 문구 확인을 전제.'
   },
+  {
+    id: 't_rule9_ball_moved',
+    type: 'info',
+    category: 'Rule 9 (Ball Played as It Lies; Ball at Rest Lifted or Moved)',
+    title: '공이 움직였을 때: 내가 움직였나, 자연력인가? (룰 9 기준 프레임)',
+    hook: '공이 움직이면, 먼저 “원인”을 룰 기준으로 분류합니다.',
+    target: '어드레스하다 공 굴러서 식은땀 나는 백돌이',
+    rules: [
+      { ref: 'Rule 9', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-9' },
+    ],
+    notes: '케이스가 많아 추론 위험 → “분류 프레임 + 공식 룰 확인 유도”로 구성.'
+  },
+
+  // =========================
+  // 예능형(상황극/퀴즈)
+  // =========================
   {
     id: 't_fun_wrongball',
     type: 'fun',
-    category: 'Rule 6 (Playing a Hole) / Wrong Ball',
-    title: '상황극: “형 그 공 내 공인데?” 잘못된 공을 쳤을 때 대처',
-    hook: '이 실수는 “친 다음”부터 더 중요합니다.',
+    category: 'Rule 6 (Playing a Hole) — Wrong Ball',
+    title: '상황극: “형 그 공 내 공인데?” 잘못된 공을 쳤을 때, 다음 행동은?',
+    hook: '이 실수는 “친 다음” 행동이 핵심입니다.',
     target: '동반자와 공이 섞이는 백돌이',
     rules: [
       { ref: 'Rule 6.3c (Wrong Ball)', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-6' },
     ],
-    notes: '예능형(대사) + 판정표(벌타/수정절차)로 구성.'
+    notes: '대사(예능) + 절차(룰) 분리. 벌타/수정은 룰 문구 확인을 전제로 “룰 6.3c 기준”이라고 말하기.'
   },
   {
     id: 't_fun_lostball',
     type: 'fun',
     category: 'Rule 18 (Lost Ball; Time to Search)',
-    title: '상황극: “아직 찾을 수 있어!” 공 찾는 시간 끝났을 때의 현실',
-    hook: '3분 지나면… 그 공은 더 이상 “있는 공”이 아닙니다.',
+    title: '상황극: “아직 찾을 수 있어!” 공 찾는 시간 끝났을 때 벌어지는 일',
+    hook: '3분이 지나면… “룰 기준”으로 다음 절차가 정해집니다.',
     target: '볼 찾다가 진행 느려지고 멘탈 깨지는 팀',
     rules: [
       { ref: 'Rule 18.2a', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-18' },
     ],
-    notes: '진행 매너(Ready Golf)는 “규칙”이 아니라 권장으로 분리 표기.'
+    notes: '예능 포인트는 살리되, 결론 문장은 룰 18.2a에 맞춰 “절차”로만.'
+  },
+  {
+    id: 't_fun_ball_hit_person',
+    type: 'fun',
+    category: 'Rule 11 (Ball in Motion Accidentally Hits Person/Equipment)',
+    title: '상황극: 내 공이 동반자/카트/가방을 맞췄다… 벌타?',
+    hook: '공이 “우연히” 맞았는지, “의도적으로” 막았는지가 포인트입니다.',
+    target: '카트도로 근처에서 사고 나는 백돌이',
+    rules: [
+      { ref: 'Rule 11', url: 'https://www.randa.org/en/rog/the-rules-of-golf/rule-11' },
+    ],
+    notes: '의도성 판단은 추론 위험 → 룰 11의 원칙(우연/고의 구분)만 “프레임”으로 소개.'
   },
 ];
 
