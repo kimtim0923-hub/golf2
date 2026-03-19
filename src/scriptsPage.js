@@ -16,6 +16,16 @@ function saveBoard(rows) {
   localStorage.setItem(KEY, JSON.stringify(rows));
 }
 
+function setSaveStatus(el, text) {
+  if (!el) return;
+  el.textContent = text;
+  // reset after a moment
+  window.clearTimeout(setSaveStatus._t);
+  setSaveStatus._t = window.setTimeout(() => {
+    el.textContent = '저장: 브라우저 로컬(자동)';
+  }, 1200);
+}
+
 function splitScripts(text) {
   const t = String(text || '').trim();
   if (!t) return [];
@@ -195,12 +205,19 @@ function mergeScriptsIntoBoard(existingRows, scripts) {
 function init() {
   const bulk = document.getElementById('bulkScripts');
   const btnParse = document.getElementById('btnParse');
+  const btnSave = document.getElementById('btnSave');
+  const saveStatus = document.getElementById('saveStatus');
   const btnClear = document.getElementById('btnClear');
   const btnExport = document.getElementById('btnExport');
 
   let rows = loadBoard();
   render(rows);
   attachAutoSave(rows);
+
+  safeOn(btnSave, 'click', () => {
+    saveBoard(rows);
+    setSaveStatus(saveStatus, '저장 완료');
+  });
 
   safeOn(btnParse, 'click', () => {
     const scripts = splitScripts(bulk?.value || '');

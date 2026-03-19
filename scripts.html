@@ -52,8 +52,9 @@
           <textarea id="bulkScripts" placeholder="여기에 1페이지에서 만든 1분 원고를 복붙하세요.\n\n여러 개를 붙일 때는 원고 사이를 빈 줄 2개로 구분하면 자동으로 여러 행이 생성됩니다."></textarea>
           <div class="row" style="margin-top:10px">
             <button id="btnParse" class="primary">리스트 생성</button>
+            <button id="btnSave" class="ok">저장</button>
             <button id="btnClear" class="warn">초기화</button>
-            <span class="meta">저장: 브라우저 로컬(자동)</span>
+            <span id="saveStatus" class="meta">저장: 브라우저 로컬(자동)</span>
           </div>
         </div>
       </div>
@@ -62,7 +63,7 @@
     <section class="card">
       <div class="row" style="justify-content:space-between">
         <div>
-          <div class="meta"><b>진행표</b> (체크하면 자동 저장)</div>
+          <div class="meta"><b>진행표</b> (수정 시 자동 저장 + [저장]으로 수동 저장 가능)</div>
           <div class="meta small">컬럼: 제목 / 대본 / 영상 제작 / 검수 / 업로드 / 편집자</div>
         </div>
         <div class="row">
