@@ -667,12 +667,19 @@ safeOn(btnUseIdea, 'click', () => {
 
 safeOn(btnApprove, 'click', () => {
   if (!currentTopic) return;
-  const userNotes = userNotesEl.value;
+  const userNotes = userNotesEl?.value || '';
 
-  currentScript = buildSlideScript({ topic: currentTopic, userNotes });
-  const pretty = JSON.stringify(currentScript, null, 2);
-  output.textContent = pretty;
-  if (narrationEl) narrationEl.textContent = currentScript.fullNarrationDraft || '원고 생성 실패';
+  try {
+    currentScript = buildSlideScript({ topic: currentTopic, userNotes });
+    const pretty = JSON.stringify(currentScript, null, 2);
+    output.textContent = pretty;
+    if (narrationEl) narrationEl.textContent = currentScript.fullNarrationDraft || '원고 생성 실패';
+  } catch (err) {
+    console.error('[golf-ref] script generation failed', err);
+    output.textContent = `대본 생성 중 오류가 발생했습니다.\n\n${String(err && err.stack ? err.stack : err)}`;
+    if (narrationEl) narrationEl.textContent = '원고 생성 중 오류(콘솔/오류 메시지 확인)';
+    return;
+  }
 
   btnCopy.disabled = false;
   btnExport.disabled = false;
