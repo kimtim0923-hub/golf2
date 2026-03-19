@@ -199,26 +199,35 @@ function escapeHtml(str) {
 }
 
 function buildSlideScript({ topic, userNotes }) {
-  const targetChars = 1200; // 1분 내레이션 목표(대략 1,200자)
-  const hardLimitChars = 1700; // 훅/예시까지 담기 위해 상한 상향
+  // --- Shorts(1분) 원고 생성 정책 ---
+  // 사용자 요구사항: 400~700자, 훅→오해→긴장감→판정→기준→요약→CTA
+  // 주의: 정적 웹앱이라 “첨부된 2026 개정 룰 파일”을 런타임에 읽을 수 없음.
+  //       대신 TOPICS 항목에 amendment2026를 미리 채워두면 그 내용을 우선 적용합니다.
 
-  const padToLength = (text) => {
-    let t = String(text || '').trim();
-    if (t.length >= targetChars) return t.slice(0, hardLimitChars);
+  const targetMinChars = 400;
+  const targetMaxChars = 700;
+  const hardLimitChars = 900;
 
+  const fitToShortsLength = (text) => {
+    let t = String(text || '').replace(/\s+\n/g, '\n').trim();
+    if (t.length > hardLimitChars) t = t.slice(0, hardLimitChars);
+
+    // 너무 짧으면(400자 미만) 짧은 보강문을 덧붙인다.
     const fillers = [
-      '지금 상황을 “관행”으로 처리하면 나중에 스코어 정산에서 문제가 됩니다.',
-      '그래서 저는 항상 룰 번호를 먼저 확인하고, 그 다음에 절차대로 진행하라고 안내합니다.',
-      '이 영상은 본룰(Rules of Golf) 기준으로만 설명하고, 마지막에 공식 출처 링크를 남깁니다.',
-      '필드에서 헷갈리면 이 영상 저장해두고, 같은 상황에서 그대로 따라 하시면 됩니다.',
+      '이거 모르고 치면 억울하게 타수 터집니다.',
+      '지금부터 1분만 집중하면, 라운드에서 바로 써먹어요.',
+      '근거 룰 번호와 공식 링크는 화면 마지막에 남겨둘게요.',
     ];
 
     let i = 0;
-    while (t.length < targetChars && i < 20) {
+    while (t.length < targetMinChars && i < 20) {
       t += (t.endsWith('.') || t.endsWith('요.') ? ' ' : ' ') + fillers[i % fillers.length];
       i++;
     }
-    return t.slice(0, hardLimitChars);
+
+    // 700자 초과면 700자까지로 컷(쇼츠 톤 유지)
+    if (t.length > targetMaxChars) t = t.slice(0, targetMaxChars);
+    return t;
   };
 
   // 1분 내레이션 원고(한 덩어리) 생성용
