@@ -200,24 +200,28 @@ function escapeHtml(str) {
 
 function buildSlideScript({ topic, userNotes }) {
   // --- Shorts(1분) 원고 생성 정책 ---
-  // 사용자 요구사항: 400~700자, 훅→오해→긴장감→판정→기준→요약→CTA
+  // 사용자 요구사항: 900~1200자, 주제 자동판단(유형A/유형B)
+  // - 유형A(단일 룰): HOOK→오해→긴장감→판정→기준→한줄요약→CTA
+  // - 유형B(총정리/리스트): HOOK(숫자 언급)→리스트 3~5개→한줄요약→CTA
   // 룰 번호는 “내레이션에서 언급하지 않음”(출처 슬라이드/JSON에만 포함)
-  // 2026: 옵션2(기억 기반)로 진행. 단, ‘본룰(Rules of Golf) 개정’만 다룬다.
-  //       (Model Local Rule/로컬룰 변경은 ‘총정리’ 요청이 있을 때만 별도로 다룸)
+  // 2026: 기억 기반으로 진행. 기본은 ‘본룰(Rules of Golf) 개정’만 다룸.
+  //       단, 사용자가 “2026 개정룰 총정리/전체정리”를 요청하면 범위를 확장해 다루되,
+  //       로컬룰/MLR은 ‘위원회 채택 시 적용’임을 한 문장으로 분리 고지.
 
-  const targetMinChars = 400;
-  const targetMaxChars = 700;
-  const hardLimitChars = 900;
+  const targetMinChars = 900;
+  const targetMaxChars = 1200;
+  const hardLimitChars = 1500;
 
   const padToLength = (text) => {
     let t = String(text || '').trim();
     const fillers = [
+      '지금 상황, 댓글로 한 줄만 적어주시면 다음 편에서 바로 판정해드릴게요.',
       '저장해두면 라운드에서 그대로 따라할 수 있어요.',
-      '이거 하나로 오늘 타수, 진짜 줄어듭니다.',
-      '댓글로 “다음 상황” 남겨주시면 다음 편에서 다뤄드릴게요.',
+      '이거 한 번만 제대로 알면, 억울한 타수 손해가 확 줄어듭니다.',
+      '다음 편은 “골린이들이 제일 많이 싸우는 상황”으로 바로 갑니다.',
     ];
     let i = 0;
-    while (t.length < targetMinChars && i < 30) {
+    while (t.length < targetMinChars && i < 60) {
       t += (t.endsWith('.') || t.endsWith('요.') ? ' ' : ' ') + fillers[i % fillers.length];
       i++;
     }
@@ -250,51 +254,109 @@ function buildSlideScript({ topic, userNotes }) {
   const makeOneMinuteManuscript = () => {
     const amendmentLine = (topic?.amendment2026 || '').trim();
 
-    // 사용자가 ‘총 정리’ 같은 요청을 하면(메모/아이디어에 포함), MLR까지 포함할 수 있음을 알리고 요약한다.
-    // (단, 기본 모드는 본룰 개정만 다룸)
-    const includeAll2026 = /총\s*정리|올\s*인\s*원|전체\s*정리|한\s*번에/i.test(String(userNotes || '') + ' ' + String(topic.title || '') + ' ' + String(topic.hook || ''));
+    const textAll = String(userNotes || '') + ' ' + String(topic.title || '') + ' ' + String(topic.hook || '');
 
-    const cta = '레슨 받고 싶으세요? KPGA 레프리-검증 지도프로 링크는 설명란에 걸어둘게요.';
+    // 유형B 감지(총정리/리스트)
+    const isTypeB = /총\s*정리|전체\s*정리|리스트|TOP\s*\d+|자주\s*틀리|라운딩\s*전\s*꼭/i.test(textAll);
 
-    // 공통: 내레이션에서 룰 번호는 말하지 않는다.
-    // 판정 문장은 “규정상/절차상”으로 단정형 서술.
-    const baseParts = {
-      hook: `HOOK(3초) ${topic.hook}`,
-      misconception: '오해 오늘도 “관행대로” 처리하면 된다고 생각한다.',
-      tension: '긴장감 근데… 이거 벌타 붙는 순간, 오늘 라운드 바로 무너집니다. 지금 맞게 하고 있나요?',
-      decision: `판정 규정상 이 상황은 “정해진 기준점 → 정해진 구제구역/절차”로 처리해야 합니다.${amendmentLine ? ` (2026 변경 포인트: ${amendmentLine})` : ''}`,
-      standard: '기준 기준은 감이 아니라 “클럽 길이”, “무릎 높이”, “홀컵 크기”처럼 눈으로 재는 값으로 처리하세요.',
-      summary: '한 줄 요약 관행 말고, 기준점+절차로 끝낸다.',
-      cta: `CTA ${cta}`,
+    // “2026 총정리” 요청이면 범위를 넓히되, MLR은 채택 필요를 고지
+    const is2026Summary = /2026.*총\s*정리|2026.*전체\s*정리|2026.*리스트/i.test(textAll);
+
+    const cta = '레슨 받고 싶으세요? KPGA 레프리가 검증한 티칭프로, 설명란 링크에서 확인하세요.';
+
+    const typeA = () => {
+      // 공통: 룰 번호는 내레이션에서 말하지 않는다.
+      // 판정은 단정형으로, 애매하면 “이 정보만으로는 단정 불가”를 넣을 여지를 남긴다.
+      let hook = `첫 라운딩에서 ${topic.hook}… 그 순간, 진짜 민망하고 억울하죠?`;
+      let misconception = '보통은 이렇게 알고 계시죠? “관행대로 하면 된다.”';
+      let tension = '그런데 여기서 문제가 생깁니다. 이거, 벌타일까요? 아닐까요?';
+      let decision = `결론부터 말하면, 규정상 이 상황은 “정해진 기준점 → 정해진 구제구역/절차”대로 처리해야 합니다.${amendmentLine ? ` 그리고 2026년 변경 포인트는 ${amendmentLine}입니다.` : ''}`;
+      let standard = '실전 기준은 이렇게 잡으세요. 무릎 높이, 클럽 길이, 홀컵 크기처럼 눈으로 재는 기준으로 처리하면 싸움이 사라집니다.';
+      let summary = '한 줄 정리. 관행 말고, 기준점+절차로 끝낸다.';
+
+      // 일부 토픽은 훅/판정/기준을 더 구체화
+      if (topic.id === 't_rule14_drop') {
+        hook = '드롭하는데 어깨에서 툭 떨어뜨렸다가 동반자한테 지적받고 얼굴 빨개진 적… 있죠?';
+        misconception = '보통은 이렇게 생각하시잖아요. “드롭은 어깨 높이에서 해야 하는 거 아닌가?”';
+        tension = '그런데 여기서 문제가 생깁니다. 이거 틀리면 바로 벌타로 이어질 수 있어요. 지금 드롭, 맞나요?';
+        decision = `결론부터 말하면, 드롭은 무릎 높이에서 손에서 ‘떨어뜨리는 것’이 기준입니다. 공은 구제구역 안에 떨어져야 하고, 구제구역 안에 멈춰야 해요.${amendmentLine ? ` 2026년 변경 포인트는 ${amendmentLine}입니다.` : ''}`;
+        standard = '기준은 간단합니다. 무릎뼈(무릎 뚜껑) 높이에서 툭. 구제구역은 1클럽/2클럽 길이처럼 “측정된 범위” 안. 밖으로 나가면 다시 드롭하거나, 정해진 방식으로 바로잡아야 합니다.';
+        summary = '한 줄 정리. 드롭은 무릎, 공은 구제구역 안에 멈춰야 끝.';
+      }
+
+      if (topic.id === 't_rule18_provisional') {
+        hook = '티샷 하나 잃고, 멘탈도 잃고, 시간도 잃고… 결국 두 타까지 더 잃는 장면, 백돌이 라운드에서 흔하죠.';
+        misconception = '보통은 이렇게 착각합니다. “새 공 하나 더 치면 다 잠정구다.”';
+        tension = '그런데 여기서 문제가 생깁니다. 선언 안 하고 치면? 그 공이 잠정구가 아니라 인플레이 공이 될 수도 있어요.';
+        decision = `결론부터 말하면, 분실 또는 OB 가능성이 있을 때 “앞으로 가서 찾기 전에” 잠정구라고 선언하고 치는 공만 잠정구입니다. 원래 공을 찾으면 원래 공으로, 분실/OB면 잠정구로 이어서 진행합니다.${amendmentLine ? ` 2026년 변경 포인트는 ${amendmentLine}입니다.` : ''}`;
+        standard = '실전 기준은 두 가지. 말로 “잠정구 칠게요”를 먼저 하고, 그 다음 스트로크 전에 치기. 그리고 공 찾기 제한시간은 3분입니다.';
+        summary = '한 줄 정리. 잠정구는 “선언 먼저, 앞으로 가기 전”이 생명.';
+      }
+
+      const draft = [
+        hook,
+        misconception,
+        tension,
+        decision,
+        standard,
+        summary,
+        cta,
+      ].join('\n\n');
+      return padToLength(draft);
     };
 
-    let parts = { ...baseParts };
+    const typeB = () => {
+      // 3~5개 리스트. 실제 “2026 총정리”면, 본룰 개정 중심 + MLR은 고지.
+      const n = 5;
+      const open = `이거 모르면 오늘 라운딩에서 바로 벌타 먹습니다. ${is2026Summary ? `2026년 바뀐 포인트 ${n}가지,` : `아마추어가 자주 틀리는 포인트 ${n}가지,`} 지금 1분에 끝낼게요.`;
 
-    if (topic.id === 't_rule14_drop') {
-      parts.hook = 'HOOK(3초) 드롭하는데 어깨에서 툭 떨어뜨렸다가 동반자랑 눈 마주친 그 순간… 진짜 민망하죠?';
-      parts.misconception = '오해 드롭은 “어깨 높이”에서 해야 한다.';
-      parts.tension = '긴장감 이거 틀리면 바로 벌타+스코어카드 꼬입니다. 지금 드롭, 맞나요?';
-      parts.decision = `판정 규정상 드롭은 “무릎 높이”에서 손에서 떨어뜨립니다. 공은 구제구역 안에 떨어져야 하고, 구제구역 안에 정지해야 합니다.${amendmentLine ? ` (2026 변경 포인트: ${amendmentLine})` : ''}`;
-      parts.standard = '기준 무릎 높이는 무릎뼈(무릎 뚜껑) 정도. 구제구역은 1클럽/2클럽 길이처럼 “측정된 범위” 안입니다. 밖으로 나가면 다시 드롭하거나, 정해진 방식으로 바로잡아야 해요.';
-      parts.summary = '한 줄 요약 드롭은 무릎, 공은 구제구역 안에 멈춰야 끝.';
-    }
+      const items = [
+        {
+          name: '드롭 실수',
+          desc: '무릎 높이에서 “툭” 떨어뜨리고, 구제구역 안에 멈춰야 끝.',
+          tip: '어깨 높이 습관 나오면 그날 스코어 바로 터집니다.'
+        },
+        {
+          name: '잠정구 선언',
+          desc: '말로 먼저 선언하고, 앞으로 가서 찾기 전에 쳐야 절차가 안전합니다.',
+          tip: '선언 없으면 나중에 공 찾고도 더 꼬일 수 있어요.'
+        },
+        {
+          name: '페널티구역 기준점',
+          desc: '마지막 경계 통과 지점을 기준으로 옵션을 선택해야 합니다.',
+          tip: '감으로 찍어서 옆에 드롭하면 분쟁이 생깁니다.'
+        },
+        {
+          name: '그린 위 절차',
+          desc: '집어들 땐 표시하고, 다시 놓을 땐 원래 자리에 정확히.',
+          tip: '대충 집어드는 순간, 말싸움 시작입니다.'
+        },
+        {
+          name: '칠 수 없을 때 선택',
+          desc: '무리하게 치다 더 망치기 전에, 규정상 선택지를 쓰는 게 안전합니다.',
+          tip: '중요한 건 “유불리”가 아니라 “기준점”입니다.'
+        },
+      ];
 
-    if (includeAll2026) {
-      // 총정리 모드: 본룰 개정만 기본으로 다루되, “필요 시 MLR도 별도 정리” 고지
-      parts.decision += ' (요청: 2026 총정리) 기본은 본룰 개정만 먼저 정리하고, 코스/위원회 채택이 필요한 로컬룰(MLR)은 따로 묶어서 설명할게요.';
-    }
+      const body = [
+        `첫 번째는 ${items[0].name}입니다. ${items[0].desc} ${items[0].tip}`,
+        `두 번째는 ${items[1].name}입니다. ${items[1].desc} ${items[1].tip}`,
+        `세 번째는 ${items[2].name}입니다. ${items[2].desc} ${items[2].tip}`,
+        `네 번째는 ${items[3].name}입니다. ${items[3].desc} ${items[3].tip}`,
+        `다섯 번째는 ${items[4].name}입니다. ${items[4].desc} ${items[4].tip}`,
+      ].join('\n\n');
 
-    const draft = [
-      parts.hook,
-      parts.misconception,
-      parts.tension,
-      parts.decision,
-      parts.standard,
-      parts.summary,
-      parts.cta,
-    ].join('\n\n');
+      const summary = `${n}가지만 알면 오늘 라운딩 준비 끝입니다.`;
 
-    return padToLength(draft);
+      const scopeNote = is2026Summary
+        ? '참고로, 2026 “총정리”는 본룰 개정이 기본이고, 코스/위원회 채택이 필요한 로컬룰(MLR)은 별도 묶음으로 따로 설명해드릴게요.'
+        : '';
+
+      const draft = [open, body, summary, scopeNote, cta].filter(Boolean).join('\n\n');
+      return padToLength(draft);
+    };
+
+    return (isTypeB ? typeB() : typeA());
   };
 
   // 2분 = 120초, 10초마다 1장 => 12장
