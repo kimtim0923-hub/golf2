@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>골프 레프리 소재/대본 생성기</title>
+  <style>
+    :root{--bg:#0b1220;--card:#121b2e;--muted:#8ea0c3;--text:#e9eefc;--accent:#6aa6ff;--ok:#42d392;--bad:#ff6a6a;}
+    body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px;}
+    h1{font-size:20px;margin:0 0 14px;}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    button{appearance:none;border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.08);color:var(--text);}
+    button.primary{background:var(--accent);color:#071023;}
+    button.ok{background:var(--ok);color:#062015;}
+    button:disabled{opacity:.5;cursor:not-allowed;}
+    .meta{font-size:12px;color:var(--muted);line-height:1.4}
+    .topicTitle{font-size:16px;font-weight:800;margin:0 0 6px;}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(106,166,255,.15);border:1px solid rgba(106,166,255,.35);color:#cfe0ff;font-size:12px;margin-right:6px;}
+    pre{white-space:pre-wrap;word-break:break-word;background:#0a1020;border:1px solid rgba(255,255,255,.08);padding:12px;border-radius:12px;max-height:520px;overflow:auto;}
+    .small{font-size:12px;}
+    textarea{width:100%;min-height:120px;background:#0a1020;border:1px solid rgba(255,255,255,.10);border-radius:12px;color:var(--text);padding:10px;box-sizing:border-box;}
+    ul{margin:10px 0 0;padding-left:18px;}
+    li{margin:6px 0;color:#dbe5ff;}
+    a{color:#b9d4ff;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>골프 레프리(본룰 중심) 소재 → 승인 → 2분 슬라이드 대본 생성기</h1>
+    <div class="grid">
+      <section class="card">
+        <div class="row">
+          <button id="btnTopic" class="primary">소재 생성</button>
+          <button id="btnApprove" class="ok" disabled>승인(대본 생성)</button>
+          <button id="btnCopy" disabled>대본 복사</button>
+          <button id="btnExport" disabled>JSON 내보내기</button>
+        </div>
+        <div style="margin-top:12px">
+          <div class="meta">타깃: 라운드 10회+ 백돌이 · 포맷: 2분 내 슬라이드(10초/장, 최대 12장) · 근거: USGA / The R&A Rules of Golf + 룰 번호/출처 링크 포함</div>
+        </div>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;"/>
+        <div id="topicBox">
+          <div class="meta">[소재 생성]을 눌러 시작하세요.</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="small meta">선택된 소재를 수정하고 싶다면 아래 메모에 추가로 적어두세요(예: 코스 상황, 로컬룰 언급 금지 등).</div>
+          <textarea id="userNotes" placeholder="추가 조건/톤/금지 표현 등을 적어두세요(선택)."></textarea>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="topicTitle">히스토리</div>
+        <div class="meta">최근 생성/승인된 항목이 여기에 저장됩니다(브라우저 로컬).</div>
+        <ul id="history"></ul>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:16px">
+      <div class="topicTitle">생성된 대본(슬라이드 12장)</div>
+      <pre id="output" class="meta">아직 대본이 없습니다.</pre>
+      <div class="meta small">주의: 본 도구는 “룰 번호/공식 링크”를 포함하도록 설계되었습니다. 실제 업로드 전, USGA/R&A 원문 링크와 해당 룰 조항을 최종 확인하세요.</div>
+    </section>
+  </div>
+
+<script src="./app.js"></script>
+</body>
+</html>
