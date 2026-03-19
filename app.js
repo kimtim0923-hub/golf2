@@ -221,8 +221,46 @@ function buildSlideScript({ topic, userNotes }) {
     return t.slice(0, hardLimitChars);
   };
 
+  // 1분 내레이션 원고(한 덩어리) 생성용
+  // - 슬라이드별 narration을 합치면 중복/짧은 문장이 많아 “원고” 품질이 떨어질 수 있어
+  //   주제별 템플릿을 바탕으로 1분 분량의 한 덩어리 원고를 만든다.
   const narrationLines = [];
   const addNarr = (line) => narrationLines.push(String(line || '').trim());
+
+  const makeOneMinuteManuscript = () => {
+    const ruleRefs = topic.rules.map(r => r.ref).join(', ');
+    const ruleUrls = topic.rules.map(r => r.url).join(' · ');
+
+    // 주제별 최소 템플릿(추론/단정 대신 “룰 기준/절차” 중심)
+    let draft = '';
+
+    if (topic.id === 't_rule18_provisional') {
+      draft = `골프 레프리 기준으로, 오늘은 잠정구, 프로비저널을 1분 안에 정리합니다. 결론부터 말하면, 프로비저널은 ‘원래 공이 분실되었거나 아웃 오브 바운즈일 가능성이 있을 때’ 그리고 ‘앞으로 가서 찾기 전에’, 다음 스트로크를 하기 전에 칠 수 있는 절차입니다. 가장 중요한 건 선언이에요. 새 공을 치기 전에 동반자에게 “프로비저널 칠게요”라고 분명히 말해야 합니다. 선언 없이 치면 그 공이 잠정구로 인정되지 않을 수 있고, 나중에 원래 공이 발견되었을 때 절차가 꼬일 수 있습니다. 진행은 이렇게 기억하세요. 원래 공이 제한 시간 안에 발견되어 인플레이 가능하면 원래 공으로 계속하고, 원래 공이 분실이거나 OB라면 프로비저널이 스트로크와 거리 벌타 절차로 이어집니다. 근거는 ${ruleRefs}이고, 공식 원문 링크는 화면에 남겨둘게요.`;
+    } else if (topic.id === 't_rule14_drop') {
+      draft = `골프 레프리 기준으로, 오늘은 드롭 절차를 1분 안에 정리합니다. 결론은 두 가지예요. 첫째, 드롭은 무릎 높이에서 공을 ‘떨어뜨리는 것’이 기준입니다. 던지거나 굴리는 게 아니라, 손에서 자연스럽게 떨어뜨립니다. 둘째, 공은 정해진 구제구역 안에 드롭해야 하고, 구제구역 안에 정지해야 합니다. 여기서 실수가 많이 나요. 예전 습관대로 어깨 높이에서 드롭하거나, 구제구역 밖으로 굴러간 걸 그냥 치면 문제가 됩니다. 드롭했는데 룰에서 정한 경우에 해당하면 재드롭이 필요할 수 있으니, 현장에서는 룰 문구를 그대로 확인하는 게 안전합니다. 오늘 영상은 본룰 기준으로만 정리했고, 근거는 ${ruleRefs}입니다. 공식 원문 링크도 화면에 남겨둘게요.`;
+    } else if (topic.id === 't_rule16_cartpath' || topic.id === 't_rule16_gur') {
+      draft = `골프 레프리 기준으로, 오늘은 무료 구제의 기본 틀을 1분 안에 정리합니다. 카트도로 같은 인공물, 또는 수리지처럼 비정상적인 코스 상태에 해당하면, 조건을 충족할 때 벌타 없이 구제를 받을 수 있습니다. 포인트는 ‘완전 구제’입니다. 공만 빼는 게 아니라, 스탠스와 스윙 구역에 대한 간섭까지 포함해서 룰이 정한 간섭이 해소되는 지점을 기준으로 절차를 진행합니다. 그리고 그 기준점은 임의로 정하면 안 되고, 룰에서 정한 방식대로 가장 가까운 완전 구제 지점을 잡고, 그에 따라 구제구역 안에 드롭합니다. 현장에서 다툼이 생기면, “룰 기준점과 절차를 그대로 따르자” 이 한 문장이 제일 안전합니다. 근거는 ${ruleRefs}이고, 공식 원문 링크는 화면에 남겨둘게요.`;
+    } else if (topic.id === 't_rule17_redyellow') {
+      draft = `골프 레프리 기준으로, 오늘은 페널티구역을 1분 안에 정리합니다. 결론부터 말하면, 페널티구역에서 구제를 받으면 보통 1벌타가 붙고, 그 다음에는 룰이 정한 옵션 중 하나를 선택해 드롭하게 됩니다. 같은 페널티구역이라도 표시 색에 따라 가능한 선택지가 달라질 수 있으니, 먼저 말뚝이나 라인 색을 확인하세요. 그리고 기준점은 ‘마지막으로 페널티구역 경계를 통과한 지점’ 같은 룰 용어가 나오기 때문에, 감으로 찍지 말고 절차대로 체크하는 게 핵심입니다. 오늘 영상은 본룰 기준으로만 정리했고, 근거는 ${ruleRefs}입니다. 공식 원문 링크도 화면에 남겨둘게요.`;
+    } else if (topic.id === 't_rule19_unplayable') {
+      draft = `골프 레프리 기준으로, 오늘은 언플레이어블, 즉 ‘칠 수 없는 공’ 절차를 1분 안에 정리합니다. 공이 덤불이나 나무 뿌리 근처에 있어 도저히 칠 수 없을 때, 룰은 1벌타로 선택할 수 있는 옵션들을 제공합니다. 핵심은 옵션이 몇 개인지, 그리고 각 옵션이 어떤 기준점을 쓰는지 “룰 기준으로” 알고 있는 거예요. 그래서 현장에서는 ‘어떤 선택이 유리하냐’ 같은 말보다, “내가 지금 선택한 옵션의 기준점이 뭔지”를 먼저 확인해야 합니다. 오늘 영상은 본룰 기준으로만 정리했고, 근거는 ${ruleRefs}입니다. 공식 원문 링크도 화면에 남겨둘게요.`;
+    } else if (topic.id === 't_rule13_green_mark') {
+      draft = `골프 레프리 기준으로, 오늘은 그린에서의 절차를 1분 안에 정리합니다. 결론은 간단합니다. 그린에서 공을 집어들거나 닦거나 다시 놓을 일이 있으면, ‘표시하고, 들어 올리고, 다시 정확히 놓는다’ 이 순서를 지키는 게 핵심이에요. 마크 없이 무심코 집어들거나, 원래 자리와 다르게 놓는 순간부터 문제가 될 수 있습니다. 그래서 저는 백돌이일수록 그린에서는 습관처럼 마커부터 놓으라고 권합니다. 오늘 영상은 본룰 기준으로만 정리했고, 근거는 ${ruleRefs}입니다. 공식 원문 링크도 화면에 남겨둘게요.`;
+    } else {
+      // 기본 원고(모든 주제 공통)
+      draft = `골프 레프리 기준으로, 오늘은 “${topic.title}”를 1분 안에 정리합니다. 이 영상은 관행이나 추측이 아니라, USGA와 The R&A의 Rules of Golf 기준으로만 설명합니다. 먼저 상황을 한 문장으로 정리하고, 그 다음 룰 번호를 확인한 뒤, 룰이 요구하는 절차를 그대로 따라가면 됩니다. 라운드 10회 이상 백돌이 구간에서 스코어가 무너지는 이유는 대부분 ‘벌타 자체’보다 ‘절차를 헷갈려서 추가 실수’를 하는 데서 나오거든요. 그래서 오늘은 결론과 절차만 짧게 가져갈게요. 근거는 ${ruleRefs}이고, 공식 원문 링크는 화면에 남겨둡니다.`;
+    }
+
+    // 사용자 메모(옵션)
+    const note = (userNotes || '').trim();
+    if (note) {
+      draft += ` 그리고 참고로, 제작 메모로는 이렇게 적어두셨어요. ${note}`;
+    }
+
+    // 목표 글자수 맞추기
+    const padded = padToLength(draft);
+    return padded;
+  };
 
   // 2분 = 120초, 10초마다 1장 => 12장
   // 원칙: 추론 금지 → 단정 대신 “룰 기준”으로 말하고, 룰 번호/출처 고정.
@@ -418,8 +456,8 @@ function buildSlideScript({ topic, userNotes }) {
     sources: sourceLines
   });
 
-  // 전체 내레이션을 1분 분량(약 1,200자)으로 맞춰 제공
-  const fullNarrationDraft = padToLength(narrationLines.filter(Boolean).join(' '));
+  // 1분 내레이션 원고(한 덩어리)
+  const fullNarrationDraft = makeOneMinuteManuscript();
 
   return { ...base, slides, fullNarrationDraft, fullNarrationCharCount: fullNarrationDraft.length };
 }
@@ -470,6 +508,7 @@ const btnCopy = document.getElementById('btnCopy');
 const btnExport = document.getElementById('btnExport');
 const topicBox = document.getElementById('topicBox');
 const output = document.getElementById('output');
+const narrationEl = document.getElementById('narration');
 const userNotesEl = document.getElementById('userNotes');
 const manualIdeaEl = document.getElementById('manualIdea');
 const btnUseIdea = document.getElementById('btnUseIdea');
@@ -509,6 +548,7 @@ safeOn(btnTopic, 'click', () => {
   btnCopy.disabled = true;
   btnExport.disabled = true;
   output.textContent = '아직 대본이 없습니다.';
+  if (narrationEl) narrationEl.textContent = '아직 원고가 없습니다.';
   topicBox.innerHTML = renderTopic(currentTopic);
 });
 
@@ -524,6 +564,7 @@ safeOn(btnUseIdea, 'click', () => {
   btnCopy.disabled = true;
   btnExport.disabled = true;
   output.textContent = '아직 대본이 없습니다.';
+  if (narrationEl) narrationEl.textContent = '아직 원고가 없습니다.';
   topicBox.innerHTML = renderTopic(currentTopic);
 });
 
@@ -534,6 +575,7 @@ safeOn(btnApprove, 'click', () => {
   currentScript = buildSlideScript({ topic: currentTopic, userNotes });
   const pretty = JSON.stringify(currentScript, null, 2);
   output.textContent = pretty;
+  if (narrationEl) narrationEl.textContent = currentScript.fullNarrationDraft || '원고 생성 실패';
 
   btnCopy.disabled = false;
   btnExport.disabled = false;
