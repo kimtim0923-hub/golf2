@@ -443,9 +443,44 @@ const btnExport = document.getElementById('btnExport');
 const topicBox = document.getElementById('topicBox');
 const output = document.getElementById('output');
 const userNotesEl = document.getElementById('userNotes');
+const manualIdeaEl = document.getElementById('manualIdea');
+const btnUseIdea = document.getElementById('btnUseIdea');
+
+function buildManualTopic(ideaText) {
+  const clean = (ideaText || '').trim();
+  return {
+    id: `t_manual_${Date.now()}`,
+    type: 'info',
+    category: 'Manual idea (needs rule mapping)',
+    title: clean ? `내 아이디어: ${clean}` : '내 아이디어',
+    hook: clean || '내가 겪은 상황을 룰 기준으로 정리합니다.',
+    target: '라운드 10회 이상 백돌이',
+    // 사용자가 아이디어만 넣는 경우, 룰 번호를 “확정”해버리면 추론이 될 수 있어
+    // 일단 placeholder로 두고, 업로드 전 공식 룰 확인을 강하게 유도한다.
+    rules: [
+      { ref: 'Rule (TBD)', url: 'https://www.randa.org/en/rog/the-rules-of-golf' },
+    ],
+    notes: '사용자 아이디어 기반. 업로드 전 해당 상황의 정확한 룰 번호를 USGA/R&A에서 최종 확인하세요.'
+  };
+}
 
 btnTopic.addEventListener('click', () => {
   currentTopic = pickRandom(TOPICS);
+  currentScript = null;
+  btnApprove.disabled = false;
+  btnCopy.disabled = true;
+  btnExport.disabled = true;
+  output.textContent = '아직 대본이 없습니다.';
+  topicBox.innerHTML = renderTopic(currentTopic);
+});
+
+btnUseIdea?.addEventListener('click', () => {
+  const idea = manualIdeaEl?.value || '';
+  if (!idea.trim()) {
+    alert('아이디어를 먼저 입력해주세요.');
+    return;
+  }
+  currentTopic = buildManualTopic(idea);
   currentScript = null;
   btnApprove.disabled = false;
   btnCopy.disabled = true;

@@ -43,7 +43,15 @@
         </div>
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:14px 0;"/>
         <div id="topicBox">
-          <div class="meta">[소재 생성]을 눌러 시작하세요.</div>
+          <div class="meta">[소재 생성]을 눌러 시작하거나, 아래에 아이디어를 직접 입력하세요.</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="topicTitle">내 아이디어로 생성</div>
+          <div class="meta small">예: “러프에서 공을 찾다가 공이 움직였어요. 벌타인가요?” 처럼 한 문장으로 적어주세요.</div>
+          <textarea id="manualIdea" placeholder="내 아이디어(상황/질문) 입력..."></textarea>
+          <div class="row" style="margin-top:10px">
+            <button id="btnUseIdea">아이디어 적용</button>
+          </div>
         </div>
         <div style="margin-top:12px">
           <div class="small meta">선택된 소재를 수정하고 싶다면 아래 메모에 추가로 적어두세요(예: 코스 상황, 로컬룰 언급 금지 등).</div>
@@ -65,6 +73,6 @@
     </section>
   </div>
 
-<script src="./app.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>
